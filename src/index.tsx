@@ -9,6 +9,9 @@ type JWTEncodeBody = {
 }
 
 export default function Command() {
+  const defaultBody = {
+    name: "John Doe"
+  };
   return (
     <Form actions={
       <ActionPanel>
@@ -19,14 +22,33 @@ export default function Command() {
         id="payload"
         title="Payload"
         placeholder="Enter JWT payload"
+        defaultValue={JSON.stringify(defaultBody)}
       />
-      <Form.TextField id="secret" title="Secret" placeholder="Enter Secret" />
+      <Form.TextField id="secret" title="Secret" placeholder="Enter Secret" defaultValue="ChangeMe" />
     </Form>
   );
 }
 
 function ShareJWTAction() {
   async function handleSubmit(values: JWTEncodeBody) {
+
+    if (!values.payload) {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Field required",
+        message: "The Payload field is required"
+      });
+      return;
+    }
+
+    if (!values.secret) {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Field required",
+        message: "The Secret field is required"
+      });
+      return;
+    }
 
     const token = jwt.sign(JSON.parse(values.payload), values.secret, {
       expiresIn: 3600
