@@ -1,16 +1,50 @@
-import json2Md from "json2md";
+import jwt from "jsonwebtoken";
 
-import { Detail } from "@raycast/api";
+import { Action, ActionPanel, Clipboard, Form, showToast, Toast } from "@raycast/api";
 
-export default function main() {
-  const md = json2Md([
-    {
-      "code": {
-        language: "json",
-        content: JSON.stringify({ name: "Cesar", email: "john@doe.me" }, null, 2)
-      }
-    }
-  ]);
+type JWTEncodeBody = {
+  payload: string,
+  secret: string,
+  expirationTime: string,
+}
 
-  return <Detail markdown={md} />;
+export default function Command() {
+  return (
+    <Form actions={
+      <ActionPanel>
+        <ShareJWTAction />
+      </ActionPanel>
+    }>
+      <Form.TextArea
+        id="payload"
+        title="Payload"
+        placeholder="Enter JWT payload"
+      />
+      <Form.TextField id="secret" title="Secret" placeholder="Enter Secret" />
+    </Form>
+  );
+}
+
+function ShareJWTAction() {
+  async function handleSubmit(values: JWTEncodeBody) {
+
+    const token = jwt.sign(JSON.parse(values.payload), values.secret, {
+      expiresIn: 3600
+    });
+
+    await Clipboard.copy(token);
+
+    showToast({
+      style: Toast.Style.Success,
+      title: "Encoded JWT",
+      message: "Copied JWT to your clipboard"
+    });
+  }
+
+  return (
+    <Action.SubmitForm
+      title="Encode JWT"
+      onSubmit={handleSubmit}
+    />
+  );
 }
